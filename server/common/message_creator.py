@@ -11,9 +11,9 @@ def create_encoded_message(response_code, client_ID):
     try:
         encoded_data_big_endian = bytes(buf)
 
-        logging.info("action: encode | result: success | client_id: %s | data: %s",
+        """ logging.info("action: encode | result: success | client_id: %s | data: %s",
                      client_ID,
-                     encoded_data)
+                     encoded_data) """
 
         return encoded_data_big_endian
     except Exception as e:
@@ -43,7 +43,7 @@ def decode_message(received_data):
                 data = (message_code, client_ID, bet)
                 bets_data.append(data)
 
-                logging.info("action: decode | result: success | client_id: %s", client_ID)
+                # logging.info("action: decode | result: success | client_id: %s", client_ID)
 
         return bets_data
 

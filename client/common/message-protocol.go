@@ -30,9 +30,9 @@ func SendMessage(client *Client, encodedMessage []byte) {
 		startIndex += messageToSendSize
 	}
 
-	log.Infof("action: send_message | result: success | client_id: %v ",
+	/* log.Infof("action: send_message | result: success | client_id: %v ",
 		client.config.ID,
-	)
+	) */
 }
 
 func min(a, b int) int {

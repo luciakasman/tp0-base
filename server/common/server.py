@@ -65,7 +65,6 @@ class Server:
                             bet = bet_data[2]
                             if message_code == 0 and client_ID is not None and bet is not None:
                                 store_bets([bet])
-                                logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
                             elif message_code == 3 and client_ID is not None and bet is not None:
                                 logging.info('action: apuestas_recibidas | result: success')
                                 keep_receiving = False
@@ -73,6 +72,7 @@ class Server:
                                 response_code = 2
                                 logging.error("action: receive_message | result: fail | error: message is incorrect or bad formatted")
                                 keep_receiving = False
+                    logging.info(f'action: apuestas_almacenadas | result: success')
             except OSError as e:
                 keep_receiving = False
                 response_code = 2

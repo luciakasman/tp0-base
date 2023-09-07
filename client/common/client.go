@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var MAX_MSGS int = 2
+var MAX_MSGS int = 100
 
 type Bet struct {
     Nombre     string
@@ -85,8 +85,8 @@ func (c *Client) StartClientLoop() {
 	// Create the connection the server 
 	c.createClientSocket()
 
-	//fileName := fmt.Sprintf("/config/data/agency-%s.csv", c.config.ID)
-	fileName := fmt.Sprintf("/config/data/agency-11.csv")
+	fileName := fmt.Sprintf("/config/data/agency-%s.csv", c.config.ID)
+	//fileName := fmt.Sprintf("/config/data/agency-11.csv")
 
 	file, err := os.Open(fileName)
 	if err != nil {

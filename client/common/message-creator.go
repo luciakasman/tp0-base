@@ -42,16 +42,15 @@ func CreateEncodedMessage(client *Client, messageCode int, batch [][]string) []b
 			"action: encode | result: fail | client_id: %v | error: %v | data: %v",
 			client.config.ID,
 			err,
-			encodedData,
+			formattedData,
 		)
 	}
 
 	formattedDataBigEndian := buf.Bytes()
 
-	log.Infof("action: encode | result: success | client_id: %v | data: %v",
+	/* log.Infof("action: encode | result: success | client_id: %v ",
 		client.config.ID,
-		encodedData,
-	)
+	) */
 
 	return formattedDataBigEndian
 }
