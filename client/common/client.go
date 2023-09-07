@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var MAX_MSGS int = 2
 
 type Bet struct {
     Nombre     string
@@ -86,7 +87,6 @@ func (c *Client) StartClientLoop() {
 
 	//fileName := fmt.Sprintf("/config/data/agency-%s.csv", c.config.ID)
 	fileName := fmt.Sprintf("/config/data/agency-11.csv")
-	log.Infof("-------FILENAME %s---------", fileName)
 
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -100,25 +100,35 @@ func (c *Client) StartClientLoop() {
 
 	reader := csv.NewReader(file)
 
-	for {
-		record, err := reader.Read()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			log.Errorf("action: reading_bet_file | result: fail | client_id: %v | data: %v",
-				c.config.ID,
-				record,
-			)
-			return
+	eof := false
+
+	for !eof {
+		batch := make([][]string, 0)
+
+    	for i := 0; i < MAX_MSGS; i++ {
+			record, err := reader.Read()
+			if err != nil {
+				if err == io.EOF {
+					eof = true
+					break
+				}
+				log.Errorf("action: reading_bet_file | result: fail | client_id: %v | data: %v",
+					c.config.ID,
+					record,
+				)
+				return
+        	}
+
+        	batch = append(batch, record)
 		}
 
-		betMessage := CreateEncodedMessage(c, 0, record)
-
-		SendMessage(c, betMessage)
+		if len(batch) != 0 {
+			betMessage := CreateEncodedMessage(c, 0, batch)
+			SendMessage(c, betMessage)
+		}
 	}
 
-	endMessage := CreateEncodedMessage(c, 3, []string{})
+	endMessage := CreateEncodedMessage(c, 3, make([][]string, 0))
 
 	SendMessage(c, endMessage)
 
@@ -128,11 +138,9 @@ func (c *Client) StartClientLoop() {
 	
 	c.conn.Close()
 
-	if messageCode == 0 {
-		log.Infof("action: apuesta_enviada | result: success | client_id: %v | dni: %v | numero: %v",
+	if messageCode == 1 {
+		log.Infof("action: apuesta_enviada | result: success | client_id: %v ",
 			c.config.ID,
-			c.bet.Documento,
-			c.bet.Numero,
 		)
 	} else {
 		log.Errorf("action: apuesta_enviada | result: fail | client_id: %v | message_code: %v",

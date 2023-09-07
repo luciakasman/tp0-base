@@ -51,6 +51,7 @@ class Server:
         keep_receiving = True
         response_encoded = None
         response_code = 1
+        # TODO: pasar response codes a un archivo.
 
         if client_sock is not None:
             try:
@@ -79,10 +80,7 @@ class Server:
 
             response_encoded = create_encoded_message(response_code, client_ID)
             if response_encoded is not None:
-                print(f"-------RESPONSE: {response_encoded}-------")
                 self.__send_message(client_sock, response_encoded)
-
-            client_sock.close()
 
     def __accept_new_connection(self):
         """

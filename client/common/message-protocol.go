@@ -1,6 +1,8 @@
 package common
 
 import (
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -45,16 +47,15 @@ func ReceiveMessage(client *Client) []byte {
 	totalRead := 0
 
 	for totalRead < len(buffer) {
-		n, err := client.conn.Read(buffer[totalRead:])
-		if err != nil {
-			client.conn.Close()
-			log.Fatalf("action: receive_bytes | result: fail | client_id: %v | error: %v",
-				client.config.ID,
-				err,
-			)
-		}
+		n, _ := client.conn.Read(buffer[totalRead:])
+
 		totalRead += n
-		if totalRead == len(buffer) || n == 0 {
+
+		data := string(buffer[:totalRead])
+
+		parts := strings.Split(data, "|")
+
+		if len(parts) == 5 {
 			break
 		}
 	}
@@ -63,7 +64,7 @@ func ReceiveMessage(client *Client) []byte {
     receivedData := make([]byte, len(data))
     copy(receivedData, data)
 
-	log.Infof("action: receive_bytes | result: success | client_id: %v | data: %v",
+	log.Infof("action: receive_message | result: success | client_id: %v | data: %v",
 		client.config.ID,
 		receivedData,
 	)
