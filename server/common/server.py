@@ -2,6 +2,12 @@ import socket
 import logging
 import signal
 
+from common.message_creator import decode_message, create_encoded_message
+from common.message_protocol import receive_message, send_message
+from common.utils import store_bets
+
+MAX_BUFFER_SIZE = 1024
+
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -22,7 +28,6 @@ class Server:
         except OSError:
             return
 
-
     def run(self):
         """
         Dummy Server loop
@@ -31,8 +36,6 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
-
-        # TODO: Modify this program to handle signal to graceful shutdown
         # the server
         while not self.shutdown:
             client_sock = self.__accept_new_connection()
@@ -47,12 +50,18 @@ class Server:
         """
         if client_sock is not None:
             try:
-                # TODO: Modify the receive to avoid short-reads
-                msg = client_sock.recv(1024).rstrip().decode('utf-8')
-                addr = client_sock.getpeername()
-                logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
-                # TODO: Modify the send to avoid short-writes
-                client_sock.send("{}\n".format(msg).encode('utf-8'))
+                message_received = self.__receive_message(client_sock)
+                message_received_code, client_ID, bet = decode_message(message_received)
+                if message_received_code == 0 and client_ID is not None and bet is not None:
+                    response_encoded = create_encoded_message(response_code=1, client_ID=client_ID)
+                    store_bets([bet])
+                    logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
+                else:
+                    response_encoded = create_encoded_message(response_code=2, client_ID=client_ID)
+                    logging.error("action: receive_message | result: fail | error: message is incorrect or is bad formatted")
+
+                if response_encoded is not None:
+                    self.__send_message(client_sock, response_encoded)
             except OSError as e:
                 logging.error(f"action: receive_message | result: fail | error: {e}")
             finally:
@@ -74,3 +83,11 @@ class Server:
             return c
         except OSError as e:
             logging.info(f'action: accept_connections | result: fail | error: {e}')
+
+    def __receive_message(self, client_sock):
+        return receive_message(client_sock)
+
+    def __send_message(self, client_sock, encoded_message):
+        send_message(client_sock, encoded_message)
+
+

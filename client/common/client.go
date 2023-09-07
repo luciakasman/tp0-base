@@ -83,9 +83,9 @@ func (c *Client) StartClientLoop() {
 
 	betMessage := CreateEncodedMessage(c, 0)
 
-	SendBytes(c, betMessage)
+	SendMessage(c, betMessage)
 
-	receivedData := ReceiveBytes(c)
+	receivedData := ReceiveMessage(c)
 
 	messageCode := DecodeMessage(c, receivedData)
 	

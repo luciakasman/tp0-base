@@ -27,7 +27,7 @@ func CreateEncodedMessage(client *Client, messageCode int) []byte {
 		)
 	}
 
-    formattedData := fmt.Sprintf("| %s | %s | %s |", messageCode, client.config.ID, encodedData)
+    formattedData := fmt.Sprintf("| %s | %s | %s |", strconv.Itoa(messageCode), client.config.ID, encodedData)
 
 	formattedDataBytes := []byte(formattedData)
 
@@ -54,26 +54,22 @@ func CreateEncodedMessage(client *Client, messageCode int) []byte {
 }
 
 func DecodeMessage(client *Client, receivedData []byte) int {
-	buf := bytes.NewBuffer(receivedData)
+	formattedData := string(receivedData)
 
-	var formattedData string
-    if err := binary.Read(buf, binary.BigEndian, &formattedData); err != nil {
-        log.Fatalf(
-			"action: decode | result: fail | client_id: %v | error: %v",
-			client.config.ID,
-			err,
-		)
-    }
+	log.Infof("action: decoding | result: success | client_id: %v | data: %v",
+		client.config.ID,
+		formattedData,
+	)
 
     parts := strings.Split(formattedData, "|")
-    if len(parts) != 3 {
+    if len(parts) != 5 {
         log.Fatalf(
 			"action: decode | result: fail | client_id: %v | error: formato invalido",
 			client.config.ID,
 		)
     }
 
-    messageCode, _ := strconv.Atoi(strings.TrimSpace(parts[0]))
+    messageCode, _ := strconv.Atoi(strings.TrimSpace(parts[1]))
 
 	log.Infof("action: decode | result: success | client_id: %v",
 		client.config.ID,

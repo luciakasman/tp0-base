@@ -4,7 +4,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func SendBytes(client *Client, encodedMessage []byte) {
+var MAX_BUFFER_SIZE int = 1024
+
+func SendMessage(client *Client, encodedMessage []byte) {
 	_, err := client.conn.Write(encodedMessage)
 	if err != nil {
 		client.conn.Close()
@@ -19,8 +21,8 @@ func SendBytes(client *Client, encodedMessage []byte) {
 	)
 }
 
-func ReceiveBytes(client *Client) []byte {
-	buffer := make([]byte, 1024) // Tamaño del búfer de lectura (ajusta según tus necesidades)
+func ReceiveMessage(client *Client) []byte {
+	buffer := make([]byte, MAX_BUFFER_SIZE)
 
     n, err := client.conn.Read(buffer)
     if err != nil {
