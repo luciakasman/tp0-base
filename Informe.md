@@ -26,11 +26,24 @@ El código podrá ser alguno de los siguientes:
 * 1: la apuesta se registró de manera correcta.
 * 2: hubo un error al registrar la apuesta.
 
-Para los códigos 1 y 2 el campo `datos` estará vacío.
+Para los códigos `1` y `2` el campo `datos` estará vacío.
 
 ### Capa de comunicación:
 
 La capa de comunicación está sobre la capa de transporte TPC. Esta implementa las funciones send y receive para la comunicación entre los sockets, evitando los fenómenos conocidos como short read y short write.
+
+
+
+## Ejercicio 6:
+
+Ahora la información de las apuestas no es una variable de entorno sino que se obtiene de un archivo. La idea es enviar varias apuestas de forma <i>batch</i> por cada conexión de cliente a servidor. 
+
+Para esto, se mantiene el protocolo de envío de mensajes como estaba pero se agrega un código más:
+
+* 3: ya no se envían más apuestas.
+
+Entonces, el servidor va a recibir apuestas con código de mensaje `1` y va a ir guardando los datos hasta que le llega un mensaje con código `3` que le avisa que ya no va a recibir más información y puede cerrar la conexión. 
+
 
 
 

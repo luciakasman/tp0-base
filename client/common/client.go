@@ -6,6 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"encoding/csv"
+	"io"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -81,9 +84,43 @@ func (c *Client) StartClientLoop() {
 	// Create the connection the server 
 	c.createClientSocket()
 
-	betMessage := CreateEncodedMessage(c, 0)
+	//fileName := fmt.Sprintf("/config/data/agency-%s.csv", c.config.ID)
+	fileName := fmt.Sprintf("/config/data/agency-11.csv")
+	log.Infof("-------FILENAME %s---------", fileName)
 
-	SendMessage(c, betMessage)
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Errorf("action: opening_bet_file | result: fail | client_id: %v | error: %s",
+			c.config.ID,
+			err,
+		)
+		return
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+
+	for {
+		record, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Errorf("action: reading_bet_file | result: fail | client_id: %v | data: %v",
+				c.config.ID,
+				record,
+			)
+			return
+		}
+
+		betMessage := CreateEncodedMessage(c, 0, record)
+
+		SendMessage(c, betMessage)
+	}
+
+	endMessage := CreateEncodedMessage(c, 3, []string{})
+
+	SendMessage(c, endMessage)
 
 	receivedData := ReceiveMessage(c)
 

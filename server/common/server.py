@@ -48,24 +48,41 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
+        keep_receiving = True
+        response_encoded = None
+        response_code = 1
+
         if client_sock is not None:
             try:
-                message_received = self.__receive_message(client_sock)
-                message_received_code, client_ID, bet = decode_message(message_received)
-                if message_received_code == 0 and client_ID is not None and bet is not None:
-                    response_encoded = create_encoded_message(response_code=1, client_ID=client_ID)
-                    store_bets([bet])
-                    logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
-                else:
-                    response_encoded = create_encoded_message(response_code=2, client_ID=client_ID)
-                    logging.error("action: receive_message | result: fail | error: message is incorrect or is bad formatted")
-
-                if response_encoded is not None:
-                    self.__send_message(client_sock, response_encoded)
+                while keep_receiving:
+                    message_received = self.__receive_message(client_sock)
+                    bets_data = decode_message(message_received)
+                    for bet_data in bets_data:
+                        if bet_data is not None:
+                            message_code = bet_data[0]
+                            client_ID = bet_data[1]
+                            bet = bet_data[2]
+                            if message_code == 0 and client_ID is not None and bet is not None:
+                                store_bets([bet])
+                                logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
+                            elif message_code == 3 and client_ID is not None and bet is not None:
+                                logging.info('action: apuestas_recibidas | result: success')
+                                keep_receiving = False
+                            else:
+                                response_code = 2
+                                logging.error("action: receive_message | result: fail | error: message is incorrect or bad formatted")
+                                keep_receiving = False
             except OSError as e:
+                keep_receiving = False
+                response_code = 2
                 logging.error(f"action: receive_message | result: fail | error: {e}")
-            finally:
-                client_sock.close()
+
+            response_encoded = create_encoded_message(response_code, client_ID)
+            if response_encoded is not None:
+                print(f"-------RESPONSE: {response_encoded}-------")
+                self.__send_message(client_sock, response_encoded)
+
+            client_sock.close()
 
     def __accept_new_connection(self):
         """

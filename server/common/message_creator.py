@@ -29,21 +29,28 @@ def create_encoded_message(response_code, client_ID):
 def decode_message(received_data):
     try:
         parts = received_data.decode('utf-8').split('|')
-        if len(parts) != 5:
-            raise ValueError("Formato inválido")
+        bets_data = []
+        for i in range(1, len(parts), 4):
+            if parts[i] != '' and parts[i] != ' ':
+                message_code = int(parts[i].strip())
+                client_ID = parts[i+1].strip()
+                if message_code == 0:
+                    bet_data = parts[i+2].split(',')
+                    bet = Bet(client_ID, bet_data[0].strip(), bet_data[1].strip(), bet_data[2].strip(), bet_data[3].strip(), bet_data[4].strip())
+                else:
+                    bet = ""
 
-        message_code = int(parts[1].strip())
-        client_ID = parts[2].strip()
-        bet_data = parts[3].split(',')
-        bet = Bet(client_ID, bet_data[0].strip(), bet_data[1].strip(), bet_data[2].strip(), bet_data[3].strip(), bet_data[4].strip())
-        logging.info("action: decode | result: success | client_id: %s", client_ID)
+                data = (message_code, client_ID, bet)
+                bets_data.append(data)
 
-        return message_code, client_ID, bet
-    
+                logging.info("action: decode | result: success | client_id: %s", client_ID)
+
+        return bets_data
+
     except Exception as e:
         logging.error(
-            "action: decode | result: fail | client_id: %s | error: %s",
-            client_ID,
+            "action: decode | result: fail | data: %s | error: %s",
+            received_data.decode('utf-8'),
             str(e),
         )
         return None, None, None

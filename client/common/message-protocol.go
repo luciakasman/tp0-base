@@ -5,23 +5,39 @@ import (
 )
 
 var MAX_BUFFER_SIZE int = 1024
+var MAX_MSG_SIZE int = 1024 * 8
 
 func SendMessage(client *Client, encodedMessage []byte) {
-	remainingData := encodedMessage
-	for len(remainingData) > 0 {
-		n, err := client.conn.Write(remainingData)
-		if err != nil {
-			log.Fatalf("action: send_message | result: fail | client_id: %v | error: %v",
-			client.config.ID,
-			err,
-		)
+	messageSize := len(encodedMessage)
+	startIndex := 0
+	for startIndex < messageSize {
+		messageToSendSize := min(MAX_MSG_SIZE, messageSize-startIndex)
+		messageToSend := encodedMessage[startIndex : startIndex+messageToSendSize]
+
+		remainingData := messageToSend
+		for len(remainingData) > 0 {
+			n, err := client.conn.Write(remainingData)
+			if err != nil {
+				log.Fatalf("action: send_message | result: fail | client_id: %v | error: %v",
+				client.config.ID,
+				err,
+				)
+			}
+			remainingData = remainingData[n:]
 		}
-		remainingData = remainingData[n:]
+		startIndex += messageToSendSize
 	}
 
 	log.Infof("action: send_message | result: success | client_id: %v ",
 		client.config.ID,
 	)
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func ReceiveMessage(client *Client) []byte {

@@ -10,25 +10,25 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-//` | código | agencia | datos | `
+// El mensaje tiene la forma: ` | código | agencia | datos | `
 
 
-func CreateEncodedMessage(client *Client, messageCode int) []byte {
+func CreateEncodedMessage(client *Client, messageCode int, data []string) []byte {
 	encodedData := ""
 	
 	if messageCode == 0 {
 		encodedData = fmt.Sprintf(
 			"%s,%s,%s,%s,%s", 
-			client.bet.Nombre, 
-			client.bet.Apellido,
-			client.bet.Documento,
-			client.bet.Nacimiento,
-			client.bet.Numero,
+			data[0], 
+			data[1],
+			data[2],
+			data[3],
+			data[4],
 		)
 	}
 
     formattedData := fmt.Sprintf("| %s | %s | %s |", strconv.Itoa(messageCode), client.config.ID, encodedData)
-
+	fmt.Sprintf("--------DATA: %s----------", formattedData)
 	formattedDataBytes := []byte(formattedData)
 
 	buf := new(bytes.Buffer)
@@ -56,7 +56,7 @@ func CreateEncodedMessage(client *Client, messageCode int) []byte {
 func DecodeMessage(client *Client, receivedData []byte) int {
 	formattedData := string(receivedData)
 
-	log.Infof("action: decoding | result: success | client_id: %v | data: %v",
+	log.Infof("action: decode | result: success | client_id: %v | data: %v",
 		client.config.ID,
 		formattedData,
 	)
