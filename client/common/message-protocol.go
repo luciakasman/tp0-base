@@ -7,13 +7,16 @@ import (
 var MAX_BUFFER_SIZE int = 1024
 
 func SendMessage(client *Client, encodedMessage []byte) {
-	_, err := client.conn.Write(encodedMessage)
-	if err != nil {
-		client.conn.Close()
-		log.Fatalf("action: send_message | result: fail | client_id: %v | error: %v",
+	remainingData := encodedMessage
+	for len(remainingData) > 0 {
+		n, err := client.conn.Write(remainingData)
+		if err != nil {
+			log.Fatalf("action: send_message | result: fail | client_id: %v | error: %v",
 			client.config.ID,
 			err,
 		)
+		}
+		remainingData = remainingData[n:]
 	}
 
 	log.Infof("action: send_message | result: success | client_id: %v ",
@@ -23,18 +26,26 @@ func SendMessage(client *Client, encodedMessage []byte) {
 
 func ReceiveMessage(client *Client) []byte {
 	buffer := make([]byte, MAX_BUFFER_SIZE)
+	totalRead := 0
 
-    n, err := client.conn.Read(buffer)
-    if err != nil {
-		client.conn.Close()
-		log.Fatalf("action: receive_bytes | result: fail | client_id: %v | error: %v",
-			client.config.ID,
-			err,
-		)
-    }
+	for totalRead < len(buffer) {
+		n, err := client.conn.Read(buffer[totalRead:])
+		if err != nil {
+			client.conn.Close()
+			log.Fatalf("action: receive_bytes | result: fail | client_id: %v | error: %v",
+				client.config.ID,
+				err,
+			)
+		}
+		totalRead += n
+		if totalRead == len(buffer) || n == 0 {
+			break
+		}
+	}
 
-    receivedData := make([]byte, n)
-    copy(receivedData, buffer[:n])
+	data := buffer[:totalRead] 
+    receivedData := make([]byte, len(data))
+    copy(receivedData, data)
 
 	log.Infof("action: receive_bytes | result: success | client_id: %v | data: %v",
 		client.config.ID,
