@@ -14,10 +14,15 @@ class Server:
         # Capture SIGTERM signal and calls the method self.__stop_gracefully
         signal.signal(signal.SIGTERM, self.__stop_gracefully)
 
-    def __stop_gracefully(self):
-        self._server_socket.close()
-        logging.info('action: gracefully_stopping | result: success ')
+    def __stop_gracefully(self, *args):
+        logging.info('Stop signal received. Interrupting server... ')
         self.shutdown = True
+        try:
+            self._server_socket.close()
+            logging.info('action: gracefully_stopping | result: success ')
+        except OSError:
+            return
+
 
     def run(self):
         """
@@ -41,17 +46,18 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
-        try:
-            # TODO: Modify the receive to avoid short-reads
-            msg = client_sock.recv(1024).rstrip().decode('utf-8')
-            addr = client_sock.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
-            # TODO: Modify the send to avoid short-writes
-            client_sock.send("{}\n".format(msg).encode('utf-8'))
-        except OSError as e:
-            logging.error(f"action: receive_message | result: fail | error: {e}")
-        finally:
-            client_sock.close()
+        if client_sock is not None:
+            try:
+                # TODO: Modify the receive to avoid short-reads
+                msg = client_sock.recv(1024).rstrip().decode('utf-8')
+                addr = client_sock.getpeername()
+                logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
+                # TODO: Modify the send to avoid short-writes
+                client_sock.send("{}\n".format(msg).encode('utf-8'))
+            except OSError as e:
+                logging.error(f"action: receive_message | result: fail | error: {e}")
+            finally:
+                client_sock.close()
 
     def __accept_new_connection(self):
         """
@@ -63,6 +69,9 @@ class Server:
 
         # Connection arrived
         logging.info('action: accept_connections | result: in_progress')
-        c, addr = self._server_socket.accept()
-        logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
-        return c
+        try:
+            c, addr = self._server_socket.accept()
+            logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
+            return c
+        except OSError as e:
+            logging.info(f'action: accept_connections | result: fail | error: {e}')

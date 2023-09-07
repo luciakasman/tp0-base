@@ -71,10 +71,10 @@ loop:
 			break loop
 		
 		case <-sigChan:
-			c.conn.Close()
 			log.Infof("action: gracefully_stopping | result: success | client_id: %v",
                 c.config.ID,
             )
+			c.conn.Close()
 			break loop
 
 		default:
