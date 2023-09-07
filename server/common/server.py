@@ -1,5 +1,6 @@
 import socket
 import logging
+import signal
 
 
 class Server:
@@ -8,6 +9,15 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
+        self.shutdown = False
+
+        # Capture SIGTERM signal and calls the method self.__stop_gracefully
+        signal.signal(signal.SIGTERM, self.__stop_gracefully)
+
+    def __stop_gracefully(self):
+        self._server_socket.close()
+        logging.info('action: gracefully_stopping | result: success ')
+        self.shutdown = True
 
     def run(self):
         """
@@ -20,7 +30,7 @@ class Server:
 
         # TODO: Modify this program to handle signal to graceful shutdown
         # the server
-        while True:
+        while not self.shutdown:
             client_sock = self.__accept_new_connection()
             self.__handle_client_connection(client_sock)
 
@@ -39,7 +49,7 @@ class Server:
             # TODO: Modify the send to avoid short-writes
             client_sock.send("{}\n".format(msg).encode('utf-8'))
         except OSError as e:
-            logging.error("action: receive_message | result: fail | error: {e}")
+            logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
 
