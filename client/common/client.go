@@ -1,8 +1,6 @@
 package common
 
 import (
-	"bufio"
-	"fmt"
 	"net"
 	"time"
 	"os"
@@ -11,6 +9,15 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+
+type Bet struct {
+    Nombre     string
+    Apellido   string
+    Documento  string
+    Nacimiento string
+    Numero     string
+}
 
 // ClientConfig Configuration used by the client
 type ClientConfig struct {
@@ -24,13 +31,15 @@ type ClientConfig struct {
 type Client struct {
 	config ClientConfig
 	conn   net.Conn
+	bet	   Bet
 }
 
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
-func NewClient(config ClientConfig) *Client {
+func NewClient(config ClientConfig, bet Bet) *Client {
 	client := &Client{
 		config: config,
+		bet: bet,
 	}
 	return client
 }
@@ -51,64 +60,49 @@ func (c *Client) createClientSocket() error {
 	return nil
 }
 
-// StartClientLoop Send messages to the client until some time threshold is met
+// StartClientLoop Send messages to the client
 func (c *Client) StartClientLoop() {
-	// autoincremental msgID to identify every message sent
-	msgID := 1
-	
+
 	// create channel to capture SIGTERM signal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGTERM)
 
-loop:
-	// Send messages if the loopLapse threshold has not been surpassed
-	for timeout := time.After(c.config.LoopLapse); ; {
-		select {
-		case <-timeout:
-	        log.Infof("action: timeout_detected | result: success | client_id: %v",
-                c.config.ID,
-            )
-			break loop
-		
+	select {
 		case <-sigChan:
 			log.Infof("action: gracefully_stopping | result: success | client_id: %v",
-                c.config.ID,
-            )
+				c.config.ID,
+			)
 			c.conn.Close()
-			break loop
+			return
 
 		default:
-		}
-
-		// Create the connection the server in every loop iteration. Send an
-		c.createClientSocket()
-
-		// TODO: Modify the send to avoid short-write
-		fmt.Fprintf(
-			c.conn,
-			"[CLIENT %v] Message N°%v\n",
-			c.config.ID,
-			msgID,
-		)
-		msg, err := bufio.NewReader(c.conn).ReadString('\n')
-		msgID++
-		c.conn.Close()
-
-		if err != nil {
-			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-                c.config.ID,
-				err,
-			)
-			return
-		}
-		log.Infof("action: receive_message | result: success | client_id: %v | msg: %v",
-            c.config.ID,
-            msg,
-        )
-
-		// Wait a time between sending one message and the next one
-		time.Sleep(c.config.LoopPeriod)
 	}
 
-	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
+	// Create the connection the server 
+	c.createClientSocket()
+
+	betMessage := CreateEncodedMessage(c, 0)
+
+	SendBytes(c, betMessage)
+
+	receivedData := ReceiveBytes(c)
+
+	messageCode := DecodeMessage(c, receivedData)
+	
+	c.conn.Close()
+
+	if messageCode == 0 {
+		log.Infof("action: apuesta_enviada | result: success | client_id: %v | dni: %v | numero: %v",
+			c.config.ID,
+			c.bet.Documento,
+			c.bet.Numero,
+		)
+	} else {
+		log.Errorf("action: apuesta_enviada | result: fail | client_id: %v | message_code: %v",
+			c.config.ID,
+			messageCode,
+		)
+	}
 }
+
+
