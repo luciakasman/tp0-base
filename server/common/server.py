@@ -15,7 +15,6 @@ class Server:
         signal.signal(signal.SIGTERM, self.__stop_gracefully)
 
     def __stop_gracefully(self, *args):
-        logging.info('Stop signal received. Interrupting server... ')
         self.shutdown = True
         try:
             self._server_socket.close()
