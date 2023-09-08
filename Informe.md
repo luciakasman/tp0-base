@@ -1,3 +1,6 @@
+Todos los ejercicios están en su branch correspondiente. 
+Cada branch de un ejercicio sale de su inmediato anterior, siendo `ej1` la primera que sale de `master`.
+
 
 # Parte 2
 ## Ejercicio 5:
@@ -13,7 +16,7 @@ Hay dos tipos de mensajes:
 
 Los mensajes estarán en Big Endian y tendrán la forma:
 
-` | código | agencia | datos | `
+``` | código | agencia | datos | ```
 
 A su vez, cuando se desea registrar una apuesta el campo `datos` serán de la forma:
 
