@@ -12,17 +12,18 @@ def receive_message(client_sock):
                 logging.error("action: receive_message | result: fail | error: data is none")
                 return None  # TODO: manejar esto
             message += data
-            last_msg_code = int(message.decode('utf-8').split('|')[-4].replace(" ",""))
-            if last_msg_code == 3 or last_msg_code == 4:
-                break
+            if message[-1:] == b'|':
+                decoded = message.decode('utf-8').replace(" ","").split('|')
+                last_msg_code = decoded[-4]
+                if last_msg_code.isnumeric() and (int(last_msg_code) == 3 or int(last_msg_code) == 4):
+                    break
         addr = client_sock.getpeername()
-        logging.info(f'action: receive_message | result: success | ip: {addr[0]}')
+        """ logging.info(f'action: receive_message | result: success | ip: {addr[0]}') """
     except OSError as e:
         logging.error(f"action: receive_message | result: fail | error: {e}")
         client_sock.close()
 
     return message
-
 
 def send_message(client_sock, encoded_message):
     try:

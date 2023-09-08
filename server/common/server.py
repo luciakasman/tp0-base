@@ -8,7 +8,7 @@ from common.utils import store_bets, load_bets, has_won
 
 MAX_BUFFER_SIZE = 1024
 
-AMOUNT_CLIENTS = 2
+AMOUNT_CLIENTS = 3
 
 
 class Server:
@@ -69,13 +69,13 @@ class Server:
                             bet = bet_data[2]
                             if message_code == 0 and client_ID is not None and bet is not None:
                                 store_bets([bet])
-                                logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
+                                """ logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}') """
                             elif message_code == 3 and client_ID is not None and bet is not None:
-                                logging.info('action: apuestas_recibidas | result: success | client_id: %s', client_ID)
+                                """ logging.info('action: apuestas_recibidas | result: success | client_id: %s', client_ID) """
                                 keep_receiving = False
                                 self.get_end_notifications.add(client_ID)
                             elif message_code == 4:
-                                if len(self.get_end_notifications) == AMOUNT_CLIENTS:
+                                if len(self.get_end_notifications) >= AMOUNT_CLIENTS:
                                     logging.info('action: sorteo | result: success')
                                     response_data = self.get_lottery_results(client_ID)
                                     response_code = 5

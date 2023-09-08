@@ -33,7 +33,7 @@ Persist the information of each bet in the STORAGE_FILEPATH file.
 Not thread-safe/process-safe.
 """
 def store_bets(bets: list[Bet]) -> None:
-    print("STORE BETS")
+    #print("STORE BETS")
     with open(STORAGE_FILEPATH, 'a+') as file:
         writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL)
         for bet in bets:

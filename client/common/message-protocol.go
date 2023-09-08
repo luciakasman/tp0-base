@@ -30,9 +30,9 @@ func SendMessage(client *Client, encodedMessage []byte) {
 		startIndex += messageToSendSize
 	}
 
-	log.Infof("action: send_message | result: success | client_id: %v ",
+	/* log.Infof("action: send_message | result: success | client_id: %v ",
 		client.config.ID,
-	)
+	) */
 }
 
 func min(a, b int) int {
@@ -64,10 +64,10 @@ func ReceiveMessage(client *Client) []byte {
     receivedData := make([]byte, len(data))
     copy(receivedData, data)
 
-	log.Infof("action: receive_message | result: success | client_id: %v | data: %v",
+	/* log.Infof("action: receive_message | result: success | client_id: %v | data: %v",
 		client.config.ID,
 		receivedData,
-	)
+	) */
 
     return receivedData
 }

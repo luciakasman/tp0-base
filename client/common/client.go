@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var MAX_MSGS int = 2
+var MAX_MSGS int = 100
 
 type Bet struct {
     Nombre     string
@@ -111,8 +111,8 @@ func (c *Client) StartClientLoop() {
 	// Create the connection the server 
 	c.createClientSocket()
 
-	//fileName := fmt.Sprintf("/config/data/agency-%s.csv", c.config.ID)
-	fileName := fmt.Sprintf("/config/data/agency-11.csv")
+	fileName := fmt.Sprintf("/config/data/agency-%s.csv", c.config.ID)
+	//fileName := fmt.Sprintf("/config/data/agency-11.csv")
 
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -165,14 +165,14 @@ func (c *Client) StartClientLoop() {
 	c.conn.Close()
 
 	if messageCode == 1 {
-		log.Infof("action: apuesta_enviada | result: success | client_id: %v ",
+		/* log.Infof("action: apuesta_enviada | result: success | client_id: %v ",
 			c.config.ID,
-		)
+		) */
 	} else {
-		log.Errorf("action: apuesta_enviada | result: fail | client_id: %v | message_code: %v",
+		/* log.Errorf("action: apuesta_enviada | result: fail | client_id: %v | message_code: %v",
 			c.config.ID,
 			messageCode,
-		)
+		) */
 	}
 }
 

@@ -48,10 +48,10 @@ func CreateEncodedMessage(client *Client, messageCode int, batch [][]string) []b
 
 	formattedDataBigEndian := buf.Bytes()
 
-	log.Infof("action: encode | result: success | client_id: %v | data: %v",
+	/* log.Infof("action: encode | result: success | client_id: %v | data: %v",
 		client.config.ID,
 		encodedData,
-	)
+	) */
 
 	return formattedDataBigEndian
 }
@@ -59,10 +59,10 @@ func CreateEncodedMessage(client *Client, messageCode int, batch [][]string) []b
 func DecodeMessage(client *Client, receivedData []byte) int {
 	formattedData := string(receivedData)
 
-	log.Infof("action: decode | result: success | client_id: %v | data: %v",
+	/* log.Infof("action: decode | result: success | client_id: %v | data: %v",
 		client.config.ID,
 		formattedData,
-	)
+	) */
 
 	parts := strings.Split(formattedData, "|")
 	if len(parts) != 5 {
@@ -74,10 +74,10 @@ func DecodeMessage(client *Client, receivedData []byte) int {
 
 	messageCode, _ := strconv.Atoi(strings.TrimSpace(parts[1]))
 
-	log.Infof("action: decode | result: success | client_id: %v | messageCode: %d",
+	/* log.Infof("action: decode | result: success | client_id: %v | messageCode: %d",
 		client.config.ID,
 		messageCode,
-	)
+	) */
 
 	return messageCode
 }
@@ -86,10 +86,10 @@ func DecodeMessage(client *Client, receivedData []byte) int {
 func DecodeWinnerMessage(client *Client, receivedData []byte) (int, int) {
 	formattedData := string(receivedData)
 
-	log.Infof("action: decode | result: success | client_id: %v | data: %v",
+	/* log.Infof("action: decode | result: success | client_id: %v | data: %v",
 		client.config.ID,
 		formattedData,
-	)
+	) */
 
 	parts := strings.Split(formattedData, "|")
 	if len(parts) != 5 {
@@ -102,10 +102,10 @@ func DecodeWinnerMessage(client *Client, receivedData []byte) (int, int) {
 	messageCode, _ := strconv.Atoi(strings.TrimSpace(parts[1]))
 	amount_winners := len(strings.TrimSpace(parts[3]))
 
-	log.Infof("action: decode | result: success | client_id: %v | messageCode: %d",
+	/* log.Infof("action: decode | result: success | client_id: %v | messageCode: %d",
 		client.config.ID,
 		messageCode,
-	)
+	) */
 
 	return messageCode, amount_winners
 }
