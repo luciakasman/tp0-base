@@ -1,5 +1,5 @@
 
-
+# Parte 2
 ## Ejercicio 5:
 
 Para resolver el ejercicio 5 se definió un protocolo de envío de mensajes que usa TCP en la capa de transporte.
@@ -22,9 +22,9 @@ A su vez, cuando se desea registrar una apuesta el campo `datos` serán de la fo
 Estos siempre tendrán el mismo orden y los campos estarán separados por comas.
 
 El código podrá ser alguno de los siguientes:
-* 0: se quiere registrar una apuesta.
-* 1: la apuesta se registró de manera correcta.
-* 2: hubo un error al registrar la apuesta.
+* `0`: se quiere registrar una apuesta.
+* `1`: la apuesta se registró de manera correcta.
+* `2`: hubo un error al registrar la apuesta.
 
 Para los códigos `1` y `2` el campo `datos` estará vacío.
 
@@ -40,9 +40,9 @@ Ahora la información de las apuestas no es una variable de entorno sino que se 
 
 Para esto, se mantiene el protocolo de envío de mensajes como estaba pero se agrega un código más:
 
-* 3: ya no se envían más apuestas.
+* `3`: ya no se envían más apuestas.
 
-Entonces, el servidor va a recibir apuestas con código de mensaje `0` y va a ir guardando los datos hasta que le llega un mensaje con código `3` que le avisa que ya no va a recibir más información y puede cerrar la conexión. Además, al final del mensaje se agrega un `\n` para determinar que no se van a recibir más datos.
+Entonces, el servidor va a recibir apuestas con código de mensaje `0` y va a ir guardando los datos hasta que le llega un mensaje con código `3` que le avisa que ya no va a recibir más información y puede cerrar la conexión. Además, al final del mensaje se agrega un `"\n"` para determinar que no se van a recibir más datos.
 
 Las apuestas las desencodea y las guarda. Cuando termina, como en el ejercicio anterior, manda un mensaje al cliente con código `1` si todo salió bien y con código `2` si algo salió mal.
 
@@ -52,8 +52,32 @@ Las apuestas las desencodea y las guarda. Cuando termina, como en el ejercicio a
 
 Ahora se agregan varios códigos más:
 
-* 4: se quiere consultar ganadores.
-* 5: se devuelven ganadores.
-* 6: no se devuelven ganadores.
+* `4`: se quiere consultar ganadores.
+* `5`: se devuelven ganadores.
+* `6`: no se devuelven ganadores.
 
 El cliente le manda al servidor ese mensaje y espera una respuesta. Si la respuesta tiene código `5` es que el servidor devuelve los ganadores de la lotería. Si tiene código `6`, todavía no están los resultados.
+
+
+# Parte 3
+## Ejercicio 8:
+
+Para lograr un servidor concurrente se utilizaron procesos, armando uno por cliente que intenta conectarse al servidor. Cada uno de esos procesos recibe los datos de su cliente y los procesa. Luego se armó un lock para restringir el acceso al archivo donde se guardan las apuestas y además un multiprocessing value para poder ir sumando la cantidad de clientes que terminaban de mandar sus apuestas.
+
+
+
+## Consideraciones generales para los ejercicios 5 a 8:
+
+En el archivo `docker-compose-dev.yaml` se definen los clientes. 
+
+En la variable global `AMOUNT_CLIENTS` del archivo `server.yaml` se especifica la cantidad. 
+
+Ambos deben coincidir.
+
+Para correr los ejercicios:
+``` make docker-compose-up ```
+
+Para ver los logs:
+``` make docker-compose-logs ```
+
+
