@@ -32,6 +32,7 @@ func CreateEncodedMessage(client *Client, messageCode int, batch [][]string) []b
 		formattedData += fmt.Sprintf("| %s | %s | %s |", strconv.Itoa(messageCode), client.config.ID, encodedData)
 	}
 
+	formattedData += "\n"
 	formattedDataBytes := []byte(formattedData)
 
 	buf := new(bytes.Buffer)

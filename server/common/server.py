@@ -8,7 +8,7 @@ from common.utils import store_bets, load_bets, has_won
 
 MAX_BUFFER_SIZE = 1024
 
-AMOUNT_CLIENTS = 3
+AMOUNT_CLIENTS = 5
 
 
 class Server:
