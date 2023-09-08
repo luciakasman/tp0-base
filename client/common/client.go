@@ -112,7 +112,6 @@ func (c *Client) StartClientLoop() {
 	c.createClientSocket()
 
 	fileName := fmt.Sprintf("/config/data/agency-%s.csv", c.config.ID)
-	//fileName := fmt.Sprintf("/config/data/agency-11.csv")
 
 	file, err := os.Open(fileName)
 	if err != nil {

@@ -1,6 +1,7 @@
 import socket
 import logging
 import signal
+from multiprocessing import Value, Lock, Process
 
 from common.message_creator import decode_message, create_encoded_message
 from common.message_protocol import receive_message, send_message
@@ -18,7 +19,8 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self.shutdown = False
-        self.get_end_notifications = set()
+        self.amount_agencies = Value('i', 0)
+        self.processes = []
 
         # Capture SIGTERM signal and calls the method self.__stop_gracefully
         signal.signal(signal.SIGTERM, self.__stop_gracefully)
@@ -39,12 +41,20 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
+
+        lock = Lock()
+
         # the server
         while not self.shutdown:
             client_sock = self.__accept_new_connection()
-            self.__handle_client_connection(client_sock)
+            p = Process(target=self.__handle_client_connection, args=(client_sock, lock, self.amount_agencies))
+            p.start()
+            self.processes.append(p)
 
-    def __handle_client_connection(self, client_sock):
+        for p in self.processes:
+            p.join()
+
+    def __handle_client_connection(self, client_sock, lock, amount_agencies):
         """
         Read message from a specific client socket and closes the socket
 
@@ -68,16 +78,18 @@ class Server:
                             client_ID = bet_data[1]
                             bet = bet_data[2]
                             if message_code == 0 and client_ID is not None and bet is not None:
+                                lock.acquire()
                                 store_bets([bet])
+                                lock.release()
                                 """ logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}') """
                             elif message_code == 3 and client_ID is not None and bet is not None:
                                 """ logging.info('action: apuestas_recibidas | result: success | client_id: %s', client_ID) """
                                 keep_receiving = False
-                                self.get_end_notifications.add(client_ID)
+                                amount_agencies.value += 1
                             elif message_code == 4:
-                                if len(self.get_end_notifications) >= AMOUNT_CLIENTS:
+                                if amount_agencies.value >= AMOUNT_CLIENTS:
                                     logging.info('action: sorteo | result: success')
-                                    response_data = self.get_lottery_results(client_ID)
+                                    response_data = self.get_lottery_results(client_ID, lock)
                                     response_code = 5
                                 else:
                                     response_code = 6
@@ -95,9 +107,11 @@ class Server:
             if response_encoded is not None:
                 self.__send_message(client_sock, response_encoded)
 
-    def get_lottery_results(self, client_ID):
+    def get_lottery_results(self, client_ID, lock):
         winners = []
+        lock.acquire()
         all_bets = load_bets()
+        lock.release()
         for bet in all_bets:
             if bet.agency == client_ID and has_won(bet):
                 winners.append(bet.document)
