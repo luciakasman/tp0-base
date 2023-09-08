@@ -4,9 +4,11 @@ import signal
 
 from common.message_creator import decode_message, create_encoded_message
 from common.message_protocol import receive_message, send_message
-from common.utils import store_bets
+from common.utils import store_bets, load_bets, has_won
 
 MAX_BUFFER_SIZE = 1024
+
+AMOUNT_CLIENTS = 2
 
 
 class Server:
@@ -16,6 +18,7 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self.shutdown = False
+        self.get_end_notifications = set()
 
         # Capture SIGTERM signal and calls the method self.__stop_gracefully
         signal.signal(signal.SIGTERM, self.__stop_gracefully)
@@ -51,6 +54,7 @@ class Server:
         keep_receiving = True
         response_encoded = None
         response_code = 1
+        response_data = ""
         # TODO: pasar response codes a un archivo.
 
         if client_sock is not None:
@@ -67,20 +71,38 @@ class Server:
                                 store_bets([bet])
                                 logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
                             elif message_code == 3 and client_ID is not None and bet is not None:
-                                logging.info('action: apuestas_recibidas | result: success')
+                                logging.info('action: apuestas_recibidas | result: success | client_id: %s', client_ID)
+                                keep_receiving = False
+                                self.get_end_notifications.add(client_ID)
+                            elif message_code == 4:
+                                if len(self.get_end_notifications) == AMOUNT_CLIENTS:
+                                    logging.info('action: sorteo | result: success')
+                                    response_data = self.get_lottery_results(client_ID)
+                                    response_code = 5
+                                else:
+                                    response_code = 6
                                 keep_receiving = False
                             else:
                                 response_code = 2
-                                logging.error("action: receive_message | result: fail | error: message is incorrect or bad formatted")
+                                logging.error("action: receive_message | result: fail | client_id: %s | error: message is incorrect or bad formatted", client_ID)
                                 keep_receiving = False
             except OSError as e:
                 keep_receiving = False
                 response_code = 2
-                logging.error(f"action: receive_message | result: fail | error: {e}")
+                logging.error(f"action: receive_message | result: fail | client_id: %s | error: {e}", client_ID)
 
-            response_encoded = create_encoded_message(response_code, client_ID)
+            response_encoded = create_encoded_message(response_code, client_ID, response_data)
             if response_encoded is not None:
                 self.__send_message(client_sock, response_encoded)
+
+    def get_lottery_results(self, client_ID):
+        winners = []
+        all_bets = load_bets()
+        for bet in all_bets:
+            if bet.agency == client_ID and has_won(bet):
+                winners.append(bet.document)
+        return winners
+
 
     def __accept_new_connection(self):
         """

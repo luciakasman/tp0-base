@@ -2,9 +2,8 @@ import logging
 from common.utils import Bet
 
 
-def create_encoded_message(response_code, client_ID):
-    encoded_data = ""
-    formatted_data = "| {} | {} | {} |".format(response_code, client_ID, encoded_data)
+def create_encoded_message(response_code, client_ID, data=""):
+    formatted_data = "| {} | {} | {} |".format(response_code, client_ID, data)
     formatted_data_bytes = formatted_data.encode('utf-8')
     buf = bytearray()
     buf.extend(formatted_data_bytes)
@@ -13,7 +12,7 @@ def create_encoded_message(response_code, client_ID):
 
         logging.info("action: encode | result: success | client_id: %s | data: %s",
                      client_ID,
-                     encoded_data)
+                     data)
 
         return encoded_data_big_endian
     except Exception as e:
@@ -21,7 +20,7 @@ def create_encoded_message(response_code, client_ID):
             "action: encode | result: fail | client_id: %s | error: %s | data: %s",
             client_ID,
             str(e),
-            encoded_data,
+            data,
         )
         return None
 

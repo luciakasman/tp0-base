@@ -28,7 +28,7 @@ func CreateEncodedMessage(client *Client, messageCode int, batch [][]string) []b
 		formattedData += fmt.Sprintf("| %s | %s | %s |", strconv.Itoa(messageCode), client.config.ID, encodedData)
 	}
 
-	if messageCode == 3 {
+	if messageCode == 3 || messageCode == 4 {
 		formattedData += fmt.Sprintf("| %s | %s | %s |", strconv.Itoa(messageCode), client.config.ID, encodedData)
 	}
 
@@ -81,3 +81,32 @@ func DecodeMessage(client *Client, receivedData []byte) int {
 
 	return messageCode
 }
+
+
+func DecodeWinnerMessage(client *Client, receivedData []byte) (int, int) {
+	formattedData := string(receivedData)
+
+	log.Infof("action: decode | result: success | client_id: %v | data: %v",
+		client.config.ID,
+		formattedData,
+	)
+
+	parts := strings.Split(formattedData, "|")
+	if len(parts) != 5 {
+		log.Fatalf(
+			"action: decode | result: fail | client_id: %v | error: formato invalido",
+			client.config.ID,
+		)
+	}
+
+	messageCode, _ := strconv.Atoi(strings.TrimSpace(parts[1]))
+	amount_winners := len(strings.TrimSpace(parts[3]))
+
+	log.Infof("action: decode | result: success | client_id: %v | messageCode: %d",
+		client.config.ID,
+		messageCode,
+	)
+
+	return messageCode, amount_winners
+}
+

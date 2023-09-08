@@ -64,6 +64,32 @@ func (c *Client) createClientSocket() error {
 	return nil
 }
 
+func (c *Client) GetLotteryResults() {
+	for {
+		c.createClientSocket()
+
+		endMessage := CreateEncodedMessage(c, 4, make([][]string, 0))
+
+		SendMessage(c, endMessage)
+
+		receivedData := ReceiveMessage(c)
+
+		messageCode, amount_winners := DecodeWinnerMessage(c, receivedData)
+
+		if messageCode == 5 {
+			log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %d ",
+				amount_winners,
+			)
+			break
+		} else {
+			log.Errorf("action: consulta_ganadores | result: fail | message_code: %v",
+				messageCode,
+			)
+		}
+		c.conn.Close()
+	}
+}
+
 // StartClientLoop Send messages to the client
 func (c *Client) StartClientLoop() {
 

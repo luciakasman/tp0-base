@@ -131,6 +131,7 @@ func main() {
 
 	client := common.NewClient(clientConfig, newBet)
 	client.StartClientLoop()
+	client.GetLotteryResults()
 }
 
 

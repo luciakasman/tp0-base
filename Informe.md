@@ -46,3 +46,13 @@ Entonces, el servidor va a recibir apuestas con código de mensaje `0` y va a ir
 
 Las apuestas las desencodea y las guarda. Cuando termina, como en el ejercicio anterior, manda un mensaje al cliente con código `1` si todo salió bien y con código `2` si algo salió mal.
 
+
+## Ejercicio 7:
+
+Ahora se agregan varios códigos más:
+
+* 4: se quiere consultar ganadores.
+* 5: se devuelven ganadores.
+* 6: no se devuelven ganadores.
+
+El cliente le manda al servidor ese mensaje y espera una respuesta. Si la respuesta tiene código `5` es que el servidor devuelve los ganadores de la lotería. Si tiene código `6`, todavía no están los resultados.
